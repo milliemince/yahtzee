@@ -1,0 +1,871 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[english]{babel}
+\usepackage{newlfont}
+\usepackage{gensymb}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\textwidth=450pt\oddsidemargin=0pt
+\begin{document}
+\begin{titlepage}
+\begin{center}
+{{\Large{\textsc{Pomona College}}}} \rule[0.1cm]{15.8cm}{0.1mm}
+\rule[0.5cm]{15.8cm}{0.6mm}
+\end{center}
+\vspace{15mm}
+\begin{center}
+{\LARGE{\bf USING MARKOV CHAINS AND \\ PROBABILISTIC MODELING TO \\ \vspace{5mm} PLAY YAHTZEE}}
+\end{center}
+\vspace{35mm}
+\par
+\noindent
+\begin{minipage}[t]{0.47\textwidth}
+{\large{\bf Author:\\
+Millie Mince\\}}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.47\textwidth}\raggedleft
+{\large{\bf Supervisor:\\
+Professor Joseph Osborn}}
+\end{minipage}
+\hfill
+
+\vspace{70mm}
+\begin{center}
+{\large{\bf August 2020 }}
+\end{center}
+\end{titlepage}
+
+\section{The Game of Yahtzee}
+\begin{center}
+\includegraphics[scale = 0.42]{yahtzee.jpeg}
+\end{center}
+
+\begin{itemize}
+    \item Yahtzee is a game of 13 rounds. Players take turns trying to score points in the 13 categories on the scoreboard above. In each turn, players can re-roll dice up to 3 times and are allowed to keep dice between re-rolls. The object of the game is to be the highest scoring player at the end of the game.
+    \item The upper section scoring is simple. The Twos section is scored by the sum of all the twos in your final dice; for example, if you have 3 twos, you can take a score of 6 in the Twos category. At the end of the game, if your score in the upper section is over 63, you receive a 35-point bonus to your final score.
+    \begin{itemize}
+        \item \underline{Note}: To get a score of 63, you have to average a 3 of a kind in each of the upper section categories.
+    \end{itemize}
+    \item The lower section scoring is as follows:
+    \begin{itemize}
+        \item 3 of-a-kind/4 of-a-kind: If you have a 3 or 4 of-a-kind of \textit{any} dice number, you score these sections as the sum of \textit{all} the dice in your final roll.
+        \item Full House: worth 25 points and is satisfied when you have a 2 of a kind and a 3 of a kind simultaneously (ex. 22233)
+        \item Small Straight: worth 30 points and is satisfied when your dice contain 4 consecutive die, either [1, 2, 3, 4], [2, 3, 4, 5], or [3, 4, 5, 6].
+        \item Large Straight: worth 40 points and is satisfied when your dice include 5 consecutive die, either [1, 2, 3, 4, 5] or [2, 3, 4, 5, 6].
+        \item Yahtzee: worth 50 points and is satisfied when you have a 5 of-a-kind of any dice.
+        \item Chance: scored as the sum of all your dice.
+        \item Additional Yahtzees: the first Yahtzee is worth 50 points. In the event of an additional Yahtzee, 100 points are added to the player's total score. Since you cannot fill an individual category more than once, in addition to the 100 point bonus, the player can choose to take a 5 of a kind in the upper section (if not already taken) or take full points on any lower section category.
+    \end{itemize}
+\end{itemize}
+
+\clearpage
+
+\section{Strategy Considerations}
+
+\begin{itemize}
+    \item We are seeking a probability based Yahtzee strategy, so we need a way to calculate the probability of reaching any combination given the current dice and number of rolls left.
+    \item Possibly the largest consideration we have to make when calculating these probabilities is that players can strategically keep dice between rolls. For example, if your current dice are [1, 2, 5, 6, 6] and you have 2 rolls left, what is the probability that you could get a large straight of [2, 3, 4, 5, 6]? This is a little more complicated than it seems because there are multiple ways that a player could get a large straight in two rolls:
+    \begin{itemize}
+        \item Roll a 3 and 4 on the first roll.
+        \item Roll neither a 3 or 4 on the first roll but roll a 3 and 4 on the second roll.
+        \item Roll a 3 on the first roll, keep the 3, and re-roll a 4 on the second roll.
+        \item Roll a 4 on the first roll, keep the 4, and re-roll a 3 on the second roll.
+    \end{itemize}
+    When calculating the probability of reaching a desired state, we must assume that a strategic player would keep the correct dice between re-rolls given the combination they are going for. On a large scale with thousands of possible dice combinations, these probabilities can get complicated very fast.
+    \item Thus far we've only considered the probabilities of reaching desired combinations. However, an optimal player will not always go for the combination that they have the highest chance of getting, because then a player would never go for difficult combinations such as Large Straight and Yahtzee. Obviously, these more difficult combinations are also worth more points, so an optimal player would have to weigh the probability of getting a certain combination with the payoff that it would provide for their total score.
+    \item The 35-point bonus: this aspect plays into the payoff of upper section combinations. Upper section payoffs must be weighted to reflect how much they contribute to receiving a 35-point bonus.
+\end{itemize}
+
+\clearpage
+
+\section{The Markov Chain}
+
+A Markov Chain is defined by the Oxford Dictionary as a ``stochastic model describing a sequence of possible events in which the \textbf{probability of each event depends only on the state attained in the previous event.}"
+
+\vspace{5mm}
+
+\underline{Note}: Pay attention to the bold text of the definition. The reason a Markov Chain is so useful in this problem is because it can calculate the probability of reaching a desired combination in \textit{two} rolls by considering the probabilities of being in each state after the first roll.
+
+\vspace{5mm}
+
+\begin{flushleft}
+I have defined \textbf{5 Yahtzee States} in the following way:
+\end{flushleft}
+
+\begin{enumerate}
+    \item \underline{State 1}: ABCDE -- there is a one of-a-kind but not a two of-a-kind; all die are unique
+    \item \underline{State 2}: AABCD, AABCC -- there is at least one two of-a-kind but no three of-a-kinds
+    \item \underline{State 3}: AAABC, AAABB -- there is a three of-a-kind (Full Houses are a subset of this state)
+    \item \underline{State 4}: AAAAB -- there is a four of-a-kind
+    \item \underline{State 5}: AAAAA -- 5 of-a-kind! Yahtzee!
+\end{enumerate}
+
+\vspace{5mm}
+
+Our goal is to find a transition matrix $T$, such that $Tx$ (where $x$ is a current state vector) gives us a new vector $Tx = b$ that shows the probability that in one roll, we’ve moved to all other states:
+
+\center T = \begin{bmatrix}
+\frac{120}{1296} & 0 & 0 & 0 & 0\\[10pt]
+\frac{900}{1296} & \frac{120}{216} & 0 & 0 & 0\\[10pt]
+\frac{250}{1296} & \frac{80}{216} & \frac{25}{36} & 0 & 0\\[10pt]
+\frac{25}{1296} & \frac{15}{216} & \frac{10}{36} & \frac{5}{6} & 0\\[10pt]
+\frac{1}{1296} & \frac{1}{216} & \frac{1}{36} & \frac{1}{6} & 1 \\[10pt]
+\end{bmatrix}
+
+\vspace{5mm}
+
+\begin{flushleft}
+\underline{Note}: This is a lower triangular matrix. Why? Because a strategic player keeps dice between rolls, it is impossible to move backwards in states between rolls. This transition matrix accomplishes that. If multiplied by the initial state vector $x = \begin{bmatrix}
+0 \\[2pt]
+0 \\[2pt]
+1 \\[2pt]
+0 \\[2pt]
+0 \\[2pt]
+\end{bmatrix}$ (signifying that we are currently in state 3), the resulting vector $b = Tx$ would have zeros in its first and second entry. Our Markov Chain assumes that a strategic player will keep the dice that got them into state 3 in the first place.
+\end{flushleft}
+
+\vspace{5mm}
+
+\textbf{Calculating Transition Matrix Probabilities:}
+
+\begin{flushleft}
+How did I calculate the probabilities in matrix $T$? For each $(i, j)$ entry of the matrix, I asked:
+\end{flushleft}
+\begin{center}
+\textit{If I am currently in State $j$, what is the probability that I will move to State $i$ in one roll?}
+\end{center}
+
+\begin{flushleft}
+\underline{Examples:}
+\end{flushleft}
+
+\begin{itemize}
+    \item Examine the fifth column first, because it is the simplest. If I am currently in State 5 and have a Yahtzee, I will certainly be in State 5 after the next “roll” -- you will “re-roll” \textit{zero} dice because you already have a Yahtzee! So there’s a 0\% chance of moving backwards to any previous stage and a 100\% chance of still being in State 5.
+    \item Now examine the fourth column. If you are in Stage 4, you have a 4 of a kind and will re-roll 1 die. There is a $\frac{1}{6}$ chance that you will roll the same number that you already have a 4 of a kind in and get a Yahtzee, so we can see that the $(5, 4)$ entry of our transition matrix is $\frac{1}{6}$. Moreover, the $(4, 4)$ entry is the probability that we will still have only a 4 of a kind after the re-roll of one dice: $\frac{5}{6}$.
+    \item The first through third column are a little more complicated (because now there are multiple ways to be in State 3: AAABC or AAABB, and there are multiple ways to be in State 2: AABCC OR AABCD), but the method of determining these probabilities is the same. Examine the denominators of each column: In State 1, you re-roll 4 dice, so there are $6^4 = 1296$ possible re-roll combinations. Similarly, in State 2, you re-roll 3 dice, so there are $6^3 = 216$ possible re-roll combinations. In State 3, $6^2 = 36$.
+\end{itemize}
+
+The most powerful aspect of the Markov Chain in this problem is that is allows us to calculate probabilities of moving between states in \textit{multiple} rolls. Let’s say you are in State 2 and have 2 rolls left. So our initial state vector is:
+
+\vspace{5mm}
+
+$x = \begin{bmatrix}
+0 \\
+1 \\
+0 \\
+0 \\
+0 \\
+\end{bmatrix}$
+
+\vspace{5mm}
+
+$Tx$ tells us the probabilities that we are in every other state after re-rolling 3 dice:
+
+$Tx = \begin{bmatrix}
+\frac{120}{1296} & 0 & 0 & 0 & 0\\[6pt]
+\frac{900}{1926} & \frac{120}{216} & 0 & 0 & 0\\[6pt]
+\frac{250}{1296} & \frac{80}{216} & \frac{25}{36} & 0 & 0\\[6pt]
+\frac{25}{1296} & \frac{15}{216} & \frac{10}{36} & \frac{5}{6} & 0\\[6pt]
+\frac{1}{1296} & \frac{1}{216} & \frac{1}{36} & \frac{1}{6} & 1 \\[6pt]
+\end{bmatrix} \cdot
+\begin{bmatrix}
+0 \\
+1 \\
+0 \\
+0 \\
+0 \\
+\end{bmatrix} = \begin{bmatrix}
+0 \\
+0.55555... \\
+0.37037... \\
+0.69444... \\
+0.00427... \\
+\end{bmatrix}
+
+\vspace{5mm}
+
+\begin{flushleft}
+$Tx$ tells us the probability that we’ve moved to other states from State 2 in \textit{one} roll. But we want to know the probabilities of moving to other states in two rolls. No problem! We can apply the transition matrix to $Tx$ to find $T^2x$, which will show the probabilities that we’ve moved to other states from State 2 in \textit{two} rolls.
+\end{flushleft}
+
+\vspace{5mm}
+
+$T^2x = T(Tx) = T \cdot \begin{bmatrix}
+0 \\
+0.55555... \\
+0.37037... \\
+0.06944... \\
+0.00463... \\
+\end{bmatrix} = \begin{bmatrix}
+0 \\
+0.30864... \\
+0.46296... \\
+0.19933... \\
+0.02906... \\
+\end{bmatrix}$
+
+\vspace{5mm}
+
+\begin{flushleft}
+\underline{Note}: Look at the new ``initial state vector," $b = Tx = \begin{bmatrix}
+0 \\
+0.55555... \\
+0.37037... \\
+0.06944... \\
+0.00463... \\
+\end{bmatrix}$. Since this state vector does not consist entirely of 0's and 1's, multiplying this vector by $T$ essentially answers: ``What is the chance that after one roll I will be in each state given that currently there is a 55.5\% chance that I'm in state 2, a 37.0\% chance that I'm in state 3, etc.?" This is how our transition matrix is able to calculate the probability of traversing states in multiple rolls.
+
+\vspace{5mm}
+
+$T^2x = \begin{bmatrix}
+0 \\
+0.30864... \\
+0.46296... \\
+0.19933... \\
+0.02906... \\
+\end{bmatrix}$ tells us that if you are in State 2 with 2 rolls left, you have a 30.8\% chance of staying in State 2, a 46.3\% chance of moving to State 3, a 19.9\% chance of moving to State 4, and a 2.9\% chance of getting a Yahtzee.
+\end{flushleft}
+
+\begin{flushleft}
+To test our Markov Chain's performance, let's work through another example with probabilities simple enough that we can intuitively calculate them. Let’s say you had a lucky first roll and have a 4 of-a-kind with 2 rolls left. What’s the probability that you will get a Yahtzee? According to our Markov chain,
+\end{flushleft}
+
+T^2x = T \cdot T \cdot \begin{bmatrix}
+0 \\
+0 \\
+0 \\
+1 \\
+0 \\
+\end{bmatrix}= \begin{bmatrix}
+0 \\
+0 \\
+0 \\
+0.69444... \\
+0.30555... \\
+\end{bmatrix}$
+
+\begin{flushleft}
+tells us that there is a 30.55\% chance of getting a Yahtzee in 2 rolls if we began in State 4 with a 4 of-a-kind. This is exactly what we’d expect! If
+\end{flushleft}
+
+\begin{itemize}
+    \item A = You get a Yahtzee on the first roll
+    \item B = You get a Yahtzee on the second roll
+\end{itemize}
+
+\begin{flushleft}
+We can see that P(A) = $\frac{1}{6}$ and P(B) = $\frac{1}{6}.$ Now, we get a Yahtzee in two rolls if \textit{either} A or B happen. Observe that:
+\end{flushleft}
+
+\begin{center}
+P(A $\vee$ B) = P(A) + P(B) - P(A $\wedge$ B) = $\frac{1}{6} + \frac{1}{6} - (\frac{1}{6} \cdot \frac{1}{6}) = 0.3055555.$,
+\end{center}
+
+\begin{flushleft}
+which is exactly what our transition matrix predicted above.
+
+\vspace{5mm}
+
+Our transition matrix $T$ only works for of-a-kind combinations (all combinations \textit{except} small and large straight). We will need to create additional transition matrices to calculate probabilities for these combinations. These are the most complicated probabilities to calculate.
+\end{flushleft}
+
+\section{Small/Large Straight Markov Chains}
+
+\vspace{5mm}
+
+\textbf{Small Straight Markov Chain}
+
+\vspace{5mm}
+
+\begin{flushleft}
+    Since a small straight is a 4-dice combination, we seek a 4x4 transition matrix $P$ such that when multiplied by a 4x1 initial state vector $x$, yields a new 4x1 vector $Px = b$ such that the entries of $b$ are the probabilities of moving from the initial state to all other states.
+    I have defined \textbf{States 1-4} similarly to how States 1-5 were defined above:
+\end{flushleft}
+    \begin{enumerate}
+        \item \underline{State 1}: there is only 1 dice in a small straight, but not two.
+
+        Examples: [3, 3, 3, 3, 3], [1, 1, 6, 6, 6], [1, 1, 5, 5, 5], [2, 2, 2, 6, 6], etc.
+
+        To be in this state, you either have to have a Yahtzee or dice consisting entirely of the following pairs: (1, 5), (1, 6), (2, 6). This is because there do not exist any small straights in which any of those pairs appear.
+        \item \underline{State 2}: there are 2 dice in a small straight, but not three.
+
+        Examples: [1, 2, 5, 5, 5], [3, 5, 1, 1, 1], etc.
+        \item \underline{State 3}: there are 3 dice of a small straight, but not all 4. In this state, you re-roll 2 dice and need one of them to be your desired final die.
+
+        Examples: [1, 2, 3, 6, 6], [2, 4, 5, 1, 1], etc.
+        \item \underline{State 4}: Complete Small Straight!
+    \end{enumerate}
+
+    \center P = \begin{bmatrix}
+\frac{108}{1296} & 0 & 0 & 0 \\[10pt]
+\frac{525}{1296} & \frac{64}{216} & 0 & 0 \\[10pt]
+\frac{582}{1296} & \frac{122}{216} & \frac{25}{36} & 0\\[10pt]
+\frac{108}{1296} & \frac{30}{216} & \frac{11}{36} & 1 \\[10pt]
+\end{bmatrix}
+
+\vspace{2mm}
+
+\begin{flushleft}
+    How did we get these probabilities? Although more complicated than before, it is done the same way: For each $(i, j)$ entry of the matrix, I asked: If I am currently in State $j$, what is the probability that I can move to State $i$ in one roll?
+
+    Let's more closely examine the State 2 column (of which the entries are the probabilities that you will move from State 2 to all other states in one roll). In State 2, we keep our two desired dice and re-roll the other three. Because Yahtzee is a game with 6-sided die, this means that there are $6 \cdot 6 \cdot 6 = \textbf{216}$ possible re-roll combinations when 3 dice are re-rolled.
+
+    In the following explanation, I am using a 5 character notation in which each character is either a ``D" or an ``X" (Example: ``DDXXD"). ``D" represents a die that is desired within the small straight, and ``X" represents a die that is explicitly not desired within the small straight. For example, if the small straight we seek is [1, 2, 3, 4], ``DDXDX" could represent [1, 2, 2, 4, 5], [1, 2, 5, 3, 3], etc. Notice that the order *does* matter. Since we only need one of each die for a small straight, if our die consists of 2 three's, only the first is marked ``D," the latter one will be marked ``X."
+\end{flushleft}
+    \begin{enumerate}
+        \item (2, 2) entry = \textbf{64/216}
+
+        \underline{Question}: If I am currently in State 2, what is the probability that I will remain in State 2 after one roll?
+
+        \underline{Answer}: If I am currently in State 2 then my dice look like this: DDXXX. Because I'm in state 2, I will re-roll 3 dice (the 3 "X" dice). We need to calculate the probability that not a single "D" placeholder is rolled; in other words, the probability that we go from XXX to XXX.
+        Because there are two remaining desired dice in the small straight combination, there are four possibilities for each "X" placeholder. So the probability of remaining in State 2 is $4 \cdot 4 \cdot 4 = 64$.
+        \item (3, 2) entry = \textbf{122/216}
+
+        \underline{Question}: If I am currently in State 2, what is the probability that I can reach State 3 in one roll?
+
+        \underline{Answer}: If I am currently in State 2, then my dice look like this: DDXXX. Because I'm in State 2, I am going to re-roll 3 dice (the 3 "X" dice). So we need to calculate the probability that we move from DDXXX to DDDXX in one roll. This means we must calculate the probability that after re-rolling XXX, our re-rolled dice are either of the form DXX, XDX, or XXD:
+        \begin{enumerate}
+            \item XXX $\rightarrow$ DXX:
+            Since we started in State 2, there are two additional desired dice to reach a small straight and therefore there are 2 possible die that would qualify for placeholder "D". The final two die are marked "X," so they are explicitly \textit{not} in the small straight we are going for. Since the first die we rolled was "D," then there is only one missing die from the small straight. Therefore, "X" can be any of the 5 die that are not the final desired die.
+
+            So the probability of XXX $\rightarrow$ DXX is $(2 \cdot 5 \cdot 5)/216 = 50/216$.
+
+            \clearpage
+
+            \item XXX $\rightarrow$ XDX:
+            The first die re-rolled is marked "X," which means that it cannot be in the desired small straight combination. Since there are two die left in the small straight, the first die has 4 possibilities. The third die re-rolled is also marked "X," however there are now 5 possibilities for this die. This is because the second re-rolled dice is marked "D" meaning that now we only desire one final die to complete the small straight.
+
+            So the probability of XXX $\rightarrow$ XDX is $(4 \cdot 2 \cdot 5)/216 = 40/216$.
+            \item XXX $\rightarrow$ XXD
+            The first two re-rolled dice are both marked "X," meaning that they both are not either of the 2 remaining desired dice. This means there are 4 possibilities for both of these die. The final re-rolled die is marked "D," so it was one of the remaining 2 die and thus there are 2 possibilities for this die.
+
+            So the probability of XXX $\rightarrow$ XXD is $(4 \cdot 4 \cdot 2)/216 = 32/216$.
+        \end{enumerate}
+        Now we must add these three probabilities and we see that $(50+40+32)/216 = \textbf{122/216}$.
+        \item (4, 2) entry = \textbf{30/216}
+
+        \underline{Question}: If I am currently in State 2, what is the probability that I can reach State 4 in one roll?
+
+        \underline{Answer}: If I am currently in State 2, then my dice are of this form: DDXXX. Because I'm in State 2, I am going to re-roll 3 dice (the 3 ``X" dice). So we need to calculate the probability that we move from DDXXX to DDDDX in one roll. This means we must calculate the probability that after re-rolling XXX, our re-rolled dice are either DDX, DXD, or XDD:
+        \begin{enumerate}
+            \item XXX $\rightarrow$ DDX = $2 \cdot 1 \cdot 6 = 12$
+            \item XXX $\rightarrow$ DXD = $2 \cdot 5 \cdot 1 = 10$
+            \item XXX $\rightarrow$ XDD = $4 \cdot 2 \cdot 1 = 8$
+        \end{enumerate}
+        So we add these probabilities to determine the total probability that a player will move from State 2 to State 4 in one roll: $(12 + 10 + 8) / 216 = \textbf{30/216}$.
+    \end{enumerate}
+
+    \begin{flushleft}
+    These probabilities make sense because we can see that the entries of all the columns add up to 1 (assuring that we have correctly accounted for all possible re-roll combinations). In the example we worked through, we can see that $64/216 + 122/216 + 30/216 = 216/216 = 1$.
+    \end{flushleft}
+
+    \clearpage
+
+    \item \textbf{Large Straight Markov Chain}
+
+    \vspace{5mm}
+
+\begin{flushleft}
+    The Large Straight transition matrix probabilities are calculated the same way as the above. Now, there are 5 states because a large straight is a 5-dice combination. \textbf{States 1-5} are defined in the same way as above:
+\end{flushleft}
+
+    \begin{enumerate}
+        \item \underline{State 1}: there is one dice in a large straight, but not two
+        \item \underline{State 2}: there are two dice in a large straight
+        \item \underline{State 3}: there are three dice in a large straight
+        \item \underline{State 4}: there are four dice in a large straight
+        \item \underline{State 5}: Large Straight!
+    \end{enumerate}
+
+\begin{flushleft}
+  We seek a 5x5 transition matrix $L$ such that when multiplied by a 5x1 initial state vector $x$, yields a new 5x1 vector $Lx = b$ such that the entries of $b$ are the probabilities of moving from the initial state to all other states.
+\end{flushleft}
+
+
+    \center L = \begin{bmatrix}
+\frac{16}{1296} & 0 & 0 & 0 & 0\\[10pt]
+\frac{260}{1296} & \frac{27}{216} & 0 & 0 & 0\\[10pt]
+\frac{660}{1296} & \frac{111}{216} & \frac{16}{36} & 0 & 0\\[10pt]
+\frac{336}{1296} & \frac{72}{216} & \frac{18}{36} & \frac{5}{6} & 0\\[10pt]
+\frac{24}{1296} & \frac{6}{216} & \frac{2}{36} & \frac{1}{6} & 1 \\[6pt]
+\end{bmatrix}
+
+\begin{flushleft}
+Now we can answer our question from earlier!
+
+If your current dice are [1, 2, 5, 6, 6] and you have 2 rolls left, what is the probability that you could get a large straight of [2, 3, 4, 5, 6]?
+
+If your current dice are [1, 2, 5, 6, 6], then you are currently in State 3 because you have [2, 5, 6] and need [3, 4]. So the initial state vector is $x = \begin{bmatrix}
+0 \\
+0 \\
+1 \\
+0 \\
+0 \\
+\end{bmatrix}$. We want to know the probability of reaching a large straight after \textit{two} rolls, so we need
+\end{flushleft}
+
+$L^2x = L(Lx) = \begin{bmatrix}
+\frac{16}{1296} & 0 & 0 & 0 & 0\\[10pt]
+\frac{260}{1296} & \frac{27}{216} & 0 & 0 & 0\\[10pt]
+\frac{660}{1296} & \frac{111}{216} & \frac{16}{36} & 0 & 0\\[10pt]
+\frac{336}{1296} & \frac{72}{216} & \frac{18}{36} & \frac{5}{6} & 0\\[10pt]
+\frac{24}{1296} & \frac{6}{216} & \frac{2}{36} & \frac{1}{6} & 1 \\[10pt]
+\end{bmatrix} \cdot (\begin{bmatrix}
+\frac{16}{1296} & 0 & 0 & 0 & 0\\[10pt]
+\frac{260}{1296} & \frac{27}{216} & 0 & 0 & 0\\[10pt]
+\frac{660}{1296} & \frac{111}{216} & \frac{16}{36} & 0 & 0\\[10pt]
+\frac{336}{1296} & \frac{72}{216} & \frac{18}{36} & \frac{5}{6} & 0\\[10pt]
+\frac{24}{1296} & \frac{6}{216} & \frac{2}{36} & \frac{1}{6} & 1 \\[10pt]
+\end{bmatrix} \cdot \begin{bmatrix}
+0 \\
+0 \\
+1 \\
+0 \\
+0 \\
+\end{bmatrix}) = \begin{bmatrix}
+0 \\
+0 \\
+0.19753... \\
+0.63888... \\
+0.16358... \\
+\end{bmatrix}$
+
+\begin{flushleft}
+This tells us that there is a \textbf{16.358\%} chance that you will get a large straight of [2, 3, 4, 5, 6] in two turns given that your first roll was [1, 2, 5, 6, 6].
+\end{flushleft}
+\section{Probability-Payoff Model}
+
+\begin{flushleft}
+Because of our Markov Chains, we now have a way to calculate the probability of reaching any state given the current dice and number of rolls left. Now we need a model that can weigh the probability of reaching a desired combination with the payoff that combination yields.
+
+If we graph the pay-off of each combination vs. the probability that you can achieve that combination on any given turn, we can find a best fit line that models the optimal payoff-probability ratio. On each turn, we can plot (payoff, probability) points for all remaining combinations and see which one has the best ratio relative to our best fit line model.
+
+To use our Markov Chain transition matrices to calculate the probabilities of getting each combination on any given turn (i.e. without the first roll and initial state vector), we have to find a probabilistic initial state vector. This vector should represent the probabilities that you are in each state after one random roll.
+\end{flushleft}
+
+\textbf{Probabilistic Initial State Vectors}
+
+\begin{itemize}
+    \item OF-A-KIND probabilistic initial state vector, to be used with transition matrix $T$
+
+    After the first roll, we can figure out the probabilities that we are in each state pretty easily. There are $6^5 = 7,776$ possible Yahtzee combinations.
+
+\begin{enumerate}
+    \item \underline{State 1}: You are in State 1 if your dice are of the form ABCDE. There are $6 \cdot 5 \cdot 4 \cdot 3 \cdot 2 \cdot 1 = 720$  combinations like this. Therefore there is a $720/7776 = \textbf{0.09259...\%}$ chance that we are in State 1 after the first roll.
+    \item \underline{State 2}: You are in State 2 if your dice are of the form AABCC or AABCD.
+    \begin{itemize}
+        \item AABCC: There are $6 \cdot 1 \cdot 5 \cdot 4 \cdot 1 = 120$ combinations of this form, and 15 permutations. So there are $150 \cdot 15 = 1800$ combinations of this form.
+        \item AABCD: There are $6 \cdot 1 \cdot 5 \cdot 4 \cdot 3 = 360 \cdot 10$ permutations = 3600 combinations of this form.
+    \end{itemize}
+    So there are 1800 + 3600 = 5400 combinations of this form, and a $5400/7776 = \textbf{0.69444...\%}$ chance that you are in State 2 after the first roll.
+    \item \underline{State 3}: You are in State 3 if your dice are of the form AAABB or AAABC.
+    \begin{itemize}
+        \item AAABB: There are $6 \cdot 1 \cdot 1 \cdot 5 \cdot 1 = 30 \cdot 10$ permutations = 300 combinations of this form.
+        \item AAABC: There are $6 \cdot 1 \cdot 1 \cdot 5 \cdot 4 = 120 \cdot$ 10 permutations = 1,200 combinations of this form.
+    \end{itemize}
+    So there are 300 + 1,200 = 1,500 combinations of this form, and a $1500/7776 = \textbf{0.19290...\%}$ chance that you are in State 3 after the first roll.
+    \item \underline{State 4}: You are in State 4 if your dice are of the form AAAAB. There are $6 \cdot 1 \cdot 1 \cdot 1 \dcot 5 = 30 \cdot 5$ permutations = 150 combinations of this form. This means there is a $150/7776 = \textbf{0.01929...\%}$ chance that you are in State 4 after the first roll.
+    \item \underline{State 5}: You are in State 5 if you have a Yahtzee. Clearly, there are only 6 combinations of this form, so you have a $6/7776 = \textbf{0.0007716...}$ chance of being in State 5 after your first roll.
+\end{enumerate}
+
+    So we can see that the initial state vector here is:
+    $s = \begin{bmatrix}
+0.09259... \\
+0.69444... \\
+0.19290... \\
+0.01929... \\
+0.0007716... \\
+\end{bmatrix}$
+
+Now, we can multiply $T^2$ by our probabilistic initial state vector to determine the probabilities of being in each state after 3 rolls on any given turn.
+
+\vspace{5mm}
+
+$T^2s = {\begin{bmatrix}
+\frac{120}{1296} & 0 & 0 & 0 & 0\\[6pt]
+\frac{900}{1926} & \frac{120}{216} & 0 & 0 & 0\\[6pt]
+\frac{250}{1296} & \frac{80}{216} & \frac{25}{36} & 0 & 0\\[6pt]
+\frac{25}{1296} & \frac{15}{216} & \frac{10}{36} & \frac{5}{6} & 0\\[6pt]
+\frac{1}{1296} & \frac{1}{216} & \frac{1}{36} & \frac{1}{6} & 1 \\[6pt]
+\end{bmatrix}}^2 \cdot  \begin{bmatrix}
+0.09259... \\
+0.69444... \\
+0.19290... \\
+0.01929... \\
+0.0007716... \\
+\end{bmatrix} = \begin{bmatrix}
+0.000917... \\
+0.25646... \\
+0.45252... \\
+0.24478... \\
+0.04603... \\
+\end{bmatrix}$
+
+\vspace{5mm}
+
+    \item SMALL-STRAIGHT probabilistic initial state vector, to be used with transition matrix $P$
+
+\begin{itemize}
+    \item \underline{State 1}: You are in state 1 if your dice look like:
+    \begin{itemize}
+        \item DXXXX: $4 \cdot 3 \cdot 3 \cdot 3 \cdot 3 = 324$ combinations
+        \item XDXXX: $2 \cdot 4 \cdot 3 \cdot 3 \cdot 3 = 216$ combinations
+        \item XXDXX: $2 \cdot 2 \cdot 4 \cdot 3 \cdot 3 = 144$ combinations
+        \item XXXDX: $2 \cdot 2 \cdot 2 \cdot 4 \cdot 3 = 96$ combinations
+        \item XXXXD: $2 \cdot 2 \cdot 2 \cdot 2 \cdot 4 = 64$ combinations
+    \end{itemize}
+    Total: $324 +216 + 144 + 96 + 64 = 844$ combinations
+
+    So the probability of being in State 1 after one random roll is 844/7776 = \textbf{0.108539...\%}
+    \item \underline{State 2}: You are in State 2 if your dice look like:
+    \begin{itemize}
+        \item DDXXX: $4 \cdot 3 \cdot 4 \cdot 4 \cdot 4 = 768$ combinations
+        \item DXDXX: $4 \cdot 3 \cdot 3 \cdot 4 \cdot 4 = 576$ combinations
+        \item DXXDX: $4 \cdot 3 \cdot 3 \cdot 3 \cdot 4 = 432$ combinations
+        \item DXXXD: $4 \cdot 3 \cdot 3 \cdot 3 \cdot 3 = 324$ combinations
+        \item XDDXX: $2 \cdot 4 \cdot 3 \cdot 4 \cdot 4 = 384$ combinations
+        \item XDXDX: $2 \cdot 4 \cdot 3 \cdot 3 \cdot 4 = 288$ combinations
+        \item XDXXD: $2 \cdot 4 \cdot 3 \cdot 3 \cdot 3 = 216$ combinations
+        \item XXDDX: $2 \cdot 2 \cdot 4 \cdot 3 \cdot 4 = 192$ combinations
+        \item XXDXD: $2 \cdot 2 \cdot 4 \cdot 3 \cdot 3 = 144$ combinations
+        \item XXXDD: $2 \cdot 2 \cdot 2 \cdot 4 \cdot 3 = 96$ combinations
+    \end{itemize}
+    Total: $768 + 576 + 462 + 324 + 384 + 288 + 216 + 192 + 144 + 96 = 3420$ combinations
+
+    So the probability of being in State 2 after one random roll is 844/7776 = \textbf{0.439814...\%}
+    \item: \underline{State 3}: You are in State 3 if your dice look like:
+    \begin{itemize}
+        \item XXDDD: $2 \cdot 2 \cdot 4 \cdot 3 \cdot 2 = 96$ combinations
+        \item XDXDD: $2 \cdot 4 \cdot 3 \cdot 3 \cdot 2 = 144$ combinations
+        \item XDDXD: $2 \cdot 4 \cdot 3 \cdot 4 \cdot 2 = 192$ combinations
+        \item XDDDX: $2 \cdot 4 \cdot 3 \cdot 2 \cdot 5 = 262$ combinations
+        \item DXXDD: $4 \cdot 3 \cdot 3 \cdot 3 \cdot 2 = 216$ combinations
+        \item DXDXD: $4 \cdot 3 \cdot 3 \cdot 4 \cdot 2 = 288$ combinations
+        \item DXDDX: $4 \cdot 3 \cdot 3 \cdot 2 \cdot 5 = 360$ combinations
+        \item DDXXD: $4 \cdot 3 \cdot 4 \cdot 4 \cdot 2 = 384$ combinations
+        \item DDXDX: $4 \cdot 3 \cdot 4 \cdot 2 \cdot 5 = 480$ combinations
+        \item DDDXX: $4 \cdot 3 \cdot 2 \cdot 5 \cdot 5 = 600$ combinations
+    \end{itemize}
+    Total: $96 + 144 + 192 + 262 + 216 + 288 + 360 + 384 + 480 + 600 = 3022$ combinations
+
+    So the probability of being in State 3 after one random roll is 844/7776 = \textbf{0.388631...\%}
+    \item State 4: You are in State 4 if your dice look like:
+    \begin{itemize}
+        \item DDDDX: $4 \cdot 3 \cdot 2 \cdot 1 \cdot \textbf{6} = 144$
+        \item DDDXD: $4 \cdot 3 \cdot 2 \cdot \textbf{5} \cdot 1 = 120$
+        \item DDXDD: $4 \cdot 3 \cdot \textbf{4} \cdot 2 \cdot 1 = 96$
+        \item DXDDD: $4 \cdot \textbf{3} \cdot 3 \cdot 2 \cdot 1 = 72$
+        \item XDDDD: $\textbf{2} \cdot 4 \cdot 3 \cdot 2 \cdot 1 = 48$
+    \end{itemize}
+    \underline{Note:} Notice the bold diagonal of numbers in the above calculations. It corresponds with the "X" marked die (the one the is \textit{not} in the small straight). The fundamental concept to how all the small/large straight probabilities is demonstrated here. The order of the dice *is* important. In the "DDDDX" case, since the small straight is satisfied with the first four dice, so the final "X" die can be any other die, hence why there are \texbf{6} possibilities denoted. In the "DDDXD" case, we see that the "X" die only has \textbf{5} possibilities. Why not 6? Observe we have 3/4 of the small straight dice because the first three die are marked as "DDD." If the fourth die was the final desired die to complete the small straight, then we would actually be in the "DDDDX" case, not the "DDDXD" case. Therefore "X" has 6-1 = \textbf{5} possibilities. The same logic explains the rest of the bold "X" die possibilities.
+    Total: $144 + 120 + 96 + 72 + 48 = 480$ combinations
+
+    So the probability of being in State 4 after one random roll is 844/7776 = \textbf{0.061728...\%}
+    \end{itemize}
+    Recall that there are 7,776 possible dice combinations. Observe that the sum of our possibilities in each state is $844 + 3420 + 3022 + 480 = 7,776$ combinations. This indicates that our calculated probabilities are likely correct, and our probabilistic initial state vector is
+    $s = \begin{bmatrix}
+0.108539... \\
+0.439814... \\
+0.388631... \\
+0.061728... \\
+\end{bmatrix}$.
+
+\clearpage
+
+Now, we can multiply $P^2$ by our probabilistic initial state vector to determine the probabilities of being in each state on any given turn.
+
+$P^2s = {\begin{bmatrix}
+\frac{108}{1296} & 0 & 0 & 0 \\[6pt]
+\frac{525}{1296} & \frac{64}{216} & 0 & 0 \\[6pt]
+\frac{582}{1296} & \frac{122}{216} & \frac{25}{36} & 0\\[6pt]
+\frac{108}{1296} & \frac{30}{216} & \frac{11}{36} & 1 \\[6pt]
+\end{bmatrix}}^2 \cdot \begin{bmatrix}
+0.108539... \\
+0.439814... \\
+0.388631... \\
+0.061728... \\
+\end{bmatrix} = \begin{bmatrix}
+0.000753... \\
+0.055304... \\
+0.496277... \\
+0.448829... \\
+\end{bmatrix}$
+
+The probabilities of being in States 1, 2, and 3 are not very important to us here because you only get the 30 points for Small Straight if you are indeed in State 4. So we look to the (4, 1) entry and see that the probability of getting a small straight on any given turn is 0.448829 = $\textbf{44.8829\%}$.
+
+    \item LARGE-STRAIGHT probabilistic initial state vector, to be used with transition matrix $L$
+
+    The large straight probabilistic initial state vector entries are calculated the same way as in the small straight vector. We find the following:
+    \begin{itemize}
+        \item \underline{State 1}: 156 combinations
+        \item \underline{State 2}: 1800 combinations
+        \item \underline{State 3}: 3900 combinations
+        \item \underline{State 4}: 1800 combinations
+        \item \underline{State 5}: 120 combinations
+    \end{itemize}
+    Total: $156 + 1800 + 3900 + 1800 + 120 = 7,776$.
+
+    Since there are 7,776 possible dice combinations, this is what is expected. We can conclude that the probabilistic initial state vector for large straights is \\
+\begin{center}
+    $s = \begin{bmatrix}
+0.020062... \\
+0.231481... \\
+0.501543... \\
+0.231481... \\
+0.015423... \\
+\end{bmatrix}$
+\end{center}
+
+Now, we can multiply $L^2$ by our probabilistic initial state vector to determine the probabilities of being in each state after two rolls on any given turn.
+
+$L^2s = {\begin{bmatrix}
+\frac{16}{1296} & 0 & 0 & 0 & 0\\[6pt]
+\frac{260}{1296} & \frac{27}{216} & 0 & 0 & 0\\[6pt]
+\frac{660}{1296} & \frac{111}{216} & \frac{16}{36} & 0 & 0\\[6pt]
+\frac{336}{1296} & \frac{72}{216} & \frac{18}{36} & \frac{5}{6} & 0\\[6pt]
+\frac{24}{1296} & \frac{6}{216} & \frac{2}{36} & \frac{1}{6} & 1 \\[6pt]
+\end{bmatrix}}^2 \cdot  \begin{bmatrix}
+0.020062... \\
+0.231481... \\
+0.501543... \\
+0.231481... \\
+0.015423... \\
+\end{bmatrix} = \begin{bmatrix}
+0.00003057... \\
+0.0041696... \\
+0.1735440... \\
+0.6254531... \\
+0.1968299... \\
+\end{bmatrix}$
+
+Again, we are only concerned with the (5, 1) entry here because it represents the probability that a large straight is achieved on any given turn: 0.1968299 = \textbf{19.68299\%}.
+
+Putting all of this information together, we can now generate a pay-off vs. probability graph:
+\vspace{5mm}
+\end{itemize}
+
+\includegraphics[scale = 0.37]{model.jpeg}
+
+\clearpage
+
+\begin{flushleft}
+We can see that the best fit line is $y = -1.4163x + 0.3332$, which can also be read as ($\text{probability} = -1.4163(\text{pay-off}) + 0.3332$). Now, we can use this best fit line to determine if a payoff/probability ratio given the current state of the game is particularly good or not. The (payoff, probability) point that is the \textit{farthest} from the line $y = -1.4163x + 0.3332$ is the optimal move given that current state.
+
+Now that our model for determining the optimal move is complete, let's simulate a full Yahtzee turn to see how the model works in action.
+\end{flushleft}
+
+\section{Turn Simulation}
+
+\begin{flushleft}
+Assume that this is the first turn of the game (i.e. all combinations are available on the scoreboard).
+
+\vspace{5mm}
+
+\underline{Random First Roll}: [1, 6, 2, 2, 6]
+\end{flushleft}
+
+
+\begin{enumerate}
+    \item We need to calculate the (payoff, probability) pairs for each combination to determine which point is the farthest from our model line $y = -1.4163x + 0.3332$. Since no threes, fours, or fives appear in our first roll, we will not consider the upper section threes, fours, and fives in our calculations.
+    \item Upper Section Probabilities:
+    \begin{itemize}
+        \item \underline{Ones}:
+
+        Current State: State 1
+
+        Remaining Rolls: 2
+
+        Probabilities = $T^2 \cdot \begin{bmatrix}
+1 \\
+0 \\
+0 \\
+0 \\
+0 \\
+\end{bmatrix} \cdot \begin{bmatrix}
+0.00857338... \\
+0.45010288... \\
+\textbf{0.40902206...} \\
+0.11967021... \\
+0.01263145... \\
+\end{bmatrix}$
+
+\underline{Note}: Because a general rule of thumb is to try for a 3 of-a-kind in each upper section category, I am using the probability that we reach State 3: \textbf{0.40902206}
+
+        \item \underline{Twos}:
+
+        Current State: State 2
+
+        Remaining Rolls: 2
+
+        Probability = $T^2 \cdot \begin{bmatrix}
+0 \\
+1 \\
+0 \\
+0 \\
+0 \\
+\end{bmatrix} \cdot \begin{bmatrix}
+0 \\
+0.3086419... \\
+\textbf{0.4629629...} \\
+0.1993312... \\
+0.0290637... \\
+\end{bmatrix}$
+
+        \item \underline{Sixes}
+
+        Current State: State 2
+
+        Remaining Rolls: 2
+
+        Probability = $T^2 \cdot \begin{bmatrix}
+0 \\
+1 \\
+0 \\
+0 \\
+0 \\
+\end{bmatrix} \cdot \begin{bmatrix}
+0 \\
+0.3086419... \\
+\textbf{0.4629629...} \\
+0.1993312... \\
+0.0290637... \\
+\end{bmatrix}$
+    \end{itemize}
+
+    \item Lower Section Probabilities:
+
+    \begin{itemize}
+        \item \underline{3 of-a-kind}:
+
+        Closest to 3 OAK in sixes, to we'll use that probability:
+
+        Probability = $T^2 \cdot \begin{bmatrix}
+0 \\
+1 \\
+0 \\
+0 \\
+0 \\
+\end{bmatrix} \cdot \begin{bmatrix}
+0 \\
+0.3086419... \\
+\textbf{0.4629629...} \\
+0.1993312... \\
+0.0290637... \\
+\end{bmatrix}$
+
+We see that there is a \textbf{0.4629629} chance of getting a 3 of a kind.
+
+    \item \underline{4 of-a-kind}:
+
+    Similarly, we are also closest to 4 OAK in sixes, so we can use the calculation from above and see that there is a \textbf{0.1993312} chance of getting a four of a kind in sixes.
+
+    \item \underline{Full House}:
+
+    We are only one die from a full house. If we re-roll the 1, there is a 1/3 chance that it is either 2 or 6 and full house is satisfied. Therefore the probability here is \textbf{0.3333}.
+
+    \item \underline{Small Straight}:
+
+    Current State: State 2 ([1, 2] out of [1, 2, 3, 4])
+
+    Remaining Rolls: 2
+
+    Probability: $P^2 \cdot \begin{bmatrix}
+0 \\
+1 \\
+0 \\
+0 \\
+\end{bmatrix} \cdot \begin{bmatrix}
+0 \\
+0.0877914... \\
+0.5595850... \\
+\textbf{0.3526234...} \\
+\end{bmatrix}$
+
+So there is a \textbf{0.3526234} chance of getting a small straight given the current state.
+
+    \item \underline{Large Straight}:
+
+    Current State: 2 ([2, 6] out of [2, 3, 4, 5, 6])
+
+    Remaining Rolls: 2
+
+    Probability: $L^2 \cdot \begin{bmatrix}
+0 \\
+1 \\
+0 \\
+0 \\
+0 \\
+\end{bmatrix} \cdot \begin{bmatrix}
+0 \\
+0.015625... \\
+0.292631... \\
+0.576388... \\
+\textbf{0.115354...} \\
+\end{bmatrix}$
+
+So there is a \textbf{0.115354} chance of getting a large straight given the current state.
+
+    \item \underline{Yahtzee}:
+
+    We are closest to a Yahtzee of sixes, so we can use the $T^2 x$ calculation from above and see that the probability of reaching a Yahtzee from the current state is \textbf{0.0290637}.
+
+    \end{itemize}
+
+    \item Now we need to consider the pay-offs of each combination:
+
+    \begin{itemize}
+        \item Ones: A three of a kind of ones has a payoff of (3/375) + ((3/63) * (35/375)) = \textbf{0.0124444}.
+        \item Twos: A three of a kind of twos has a payoff of (6/375) + ((6/63) * (35/375)) = \textbf{0.02488888}.
+        \item Sixes: A three of a kind of sixes has a payoff of (18/375) + ((18/63) * (35/375)) = \textbf{0.0746667}.
+        \item 3 of-a-kind: A three of a kind of sixes has a payoff of (18/375) = \textbf{0.048}.
+        \item 4 of-a-kind: A four of a kind of sixes has a payoff of (24/375) = \textbf{0.064}.
+        \item Full House: a full house has a payoff of 25/375 = \textbf{0.06666}.
+        \item Small Straight: A small straight has a payoff of 30/375 = \textbf{0.08}.
+        \item Large Straight: A large straight has a payoff of 40/275 = \textbf{0.10666}.
+        \item Yahtzee: A yahtzee has a payoff of 50/375 = \textbf{0.133333}.
+    \end{itemize}
+
+    \item Now that we have the (payoff, probability) pairs for each move, we can graph these points and see that:
+
+    \begin{center}
+    \includegraphics[scale = 0.37]{model1.jpeg}
+    \end{center}
+
+    The point (0.0746667, 0.4629629) for \underline{Sixes} is the farthest from our best fit line and is therefore the optimal move.
+
+    We keep the two sixes we already have and re-roll the remaining three.
+
+    \vspace{5mm}
+\end{enumerate}
+
+\begin{flushleft}
+\underline{Second Roll}: [6, 6, 4, 5, 3]
+\end{flushleft}
+
+\begin{enumerate}
+    \item We follow the same procedures for calculating (payoff, probability) pairs with one major change: Instead of multiplying the square of each transition matrix to the initial state vector, we only multiply by the transition matrix to the first degree. This is because now we only have one remaining roll, not two.
+
+    \clearpage
+
+    \item We find the following graph:
+
+    \begin{center}
+        \includegraphics[scale = 0.37]{model2.jpeg}
+    \end{center}
+
+    \item Since the small straight here is already satisfied, it's probability becomes 1.0. We see that the point (0.08, 1) for small straight is farthest from the model line and it is the "optimal" move to take. Since there is one remaining roll, however, we will re-roll extra six to try for a large straight.
+
+\end{enumerate}
+
+\begin{flushleft}
+\underline{Final Roll}: [3, 4, 5, 6, 4] *TAKES SMALL STRAIGHT*
+\end{flushleft}
+
+\section{Coding the Program}
+
+\begin{flushleft}
+The process of calculating all the (payoff, probability) pairs is tedious and tiresome. Attached in this folder is a program written in the Julia language that executes the process outlined above. It's functions are described throughout. Enjoy! :)
+\end{flushleft}
+
+\end{document}
