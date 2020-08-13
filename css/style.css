@@ -1,0 +1,10 @@
+img {
+    border: 1px solid black;
+    display: block;
+    width: 86%;
+    margin: 0 7% 10px 7%;
+}
+
+body {
+    background-color: gray;
+}
