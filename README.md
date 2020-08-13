@@ -1,11 +1,10 @@
 ## Using Markov Chains and Probabilistic Modeling to Play Yahtzee
 
-### Desciption of Files
-
 Hello Sarah hehe. You are the first to see my lil page here >:) 
 
 In the upper right hand corner you'll see a blue rectangle linking to the GitHub folder with everything in it. The important files are described below (the others are helper files and whatnot). First look at the "PDF rendering" of "markov-chain-yahtzee.tex." Then you can use the blue button to go to my Github folder and click on "yahtzee5.jl" to see the code. Damnnnnn she so sexy with it!
 
+### Desciption of Files
 
 ```
 markov-chain-yahtzee.tex
