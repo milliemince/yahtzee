@@ -13,7 +13,7 @@ LaTex file describing how Markov Chain transition matrix probabilities were calc
 Using_Markov_Chains_And_Probabilistic_Modeling_To_Play_Yahtzee.pdf
 ```
 
-[PDF rendering]() of ```markov-chain-yahtzee.tex```
+[PDF rendering](https://drive.google.com/file/d/1Y5hUx9HHLH6KYypKV3E5pVbmhkAhsKf0/view?usp=sharing) of ```markov-chain-yahtzee.tex```
 
 
 
