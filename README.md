@@ -1,8 +1,6 @@
 ## Using Markov Chains and Probabilistic Modeling to Play Yahtzee
 
-Hello Sarah hehe. You are the first to see my lil page here >:) 
-
-In the upper right hand corner you'll see a blue rectangle linking to the GitHub folder with everything in it. The important files are described below (the others are helper files and whatnot). First look at the "PDF rendering" of "markov-chain-yahtzee.tex." Then you can use the blue button to go to my Github folder and click on "yahtzee5.jl" to see the code. Damnnnnn she so sexy with it!
+Hello! Over the summer, I have been experimenting with Markov Chains to calculate Yahtzee probabilities as well as coded a program that strategically plays Yahtzee using these probabilities. The important files are outlined below. Please start by reading ```Using_Markov_Chains_And_Probabilistic_Modeling_To_Play_Yahtzee.pdf``` which can be accessed by clicking the blue "PDF rendering" text below. Then, you can use the blue "View in GitHub" button in the upper right-hand corner to access all of the files in my repository. There, you can find ```yahtzee5.jl```.
 
 ### Desciption of Files
 
