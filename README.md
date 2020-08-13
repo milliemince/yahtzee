@@ -13,4 +13,8 @@ LaTex file describing how Markov Chain transition matrix probabilities were calc
 yahtzee5.jl
 ```
 
+<<<<<<< HEAD
 Written in Julia, executes strategy described in [markov-chain-yahtzee.tex](https://drive.google.com/file/d/1Y5hUx9HHLH6KYypKV3E5pVbmhkAhsKf0/view?usp=sharing).
+=======
+Written in Julia, executes strategy described in [markov-chain-yahtzee.tex](https://drive.google.com/file/d/1Y5hUx9HHLH6KYypKV3E5pVbmhkAhsKf0/view?usp=sharing).
+>>>>>>> 30e8d821b621c05d0526cad8abc1be06bec02fa3
