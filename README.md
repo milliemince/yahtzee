@@ -13,13 +13,14 @@ Strategy_Description.pdf
 ```
 markov-chain-yahtzee.tex
 ```
-Tex file rendered in ```Strategy_Description.pdf```.
+[markov-chain-yahtzee.tex](https://milliemince.github.io/yahtzee/markov-chain-yahtzee.tex) is the LaTex file used for ```Strategy_Description.pdf```.
 
 
 ```
 yahtzee5.jl
 ```
-Written in Julia, executes strategy described in ```Using_Markov_Chains_And_Probabilistic_Modeling_To_Play_Yahtzee.pdf```
+[yahtzee5.jl](https://milliemince.github.io/yahtzee/yahtzee5.jl) is written in Julia and executes the strategy described in ```Strategy_Description.pdf```
+Important Functions:
 * ```play()``` function simulates a game between the program and a human.
 * ```play_computer()``` function simulates an entire game between two programmed players.
 * ```average_score()``` simulates 50 games and returns the average score of the program. The average score is 200.3.
