@@ -2,7 +2,7 @@
 
 Hello! Over the summer, I have been experimenting with Markov Chains to calculate Yahtzee probabilities that can be used in a program that strategically plays Yahtzee. I'd love if you took a look at it! The important files are outlined below. Please start by reading ```Strategy_Description.pdf``` which can be accessed by clicking the blue "PDF rendering" text below. Then, you can use the blue "View in GitHub" button in the upper right-hand corner to access all of the files in my repository. There, you can find ```yahtzee5.jl```.
 
-### Desciption of Files
+### Description of Files
 
 ```
 Strategy_Description.pdf
