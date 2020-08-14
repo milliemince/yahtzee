@@ -10,11 +10,16 @@ Strategy_Description.pdf
 
 [Strategy_Description.pdf](https://drive.google.com/file/d/1Y5hUx9HHLH6KYypKV3E5pVbmhkAhsKf0/view?usp=sharing) describes the math concepts behind the strategy, such as how Markov Chain transition matrix probabilities were calculated as well as the payoff/probability model used to determine the optimal move. Towards the end of ```Strategy_Description.pdf```, there is a full simulated turn example that outlines how the program in "yahtzee5.jl" determines and acts on the optimal move. This document is very important in understanding how Markov Chains function in this analysis as well as the fundamentals of the Yahtzee strategy.
 
+<br />
+<br />
+
 ```
 markov-chain-yahtzee.tex
 ```
 [markov-chain-yahtzee.tex](https://milliemince.github.io/yahtzee/markov-chain-yahtzee.tex) is the LaTex file used for ```Strategy_Description.pdf```.
 
+<br />
+<br />
 
 ```
 yahtzee5.jl
