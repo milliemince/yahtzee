@@ -5,10 +5,10 @@ Hello! Over the summer, I have been experimenting with Markov Chains to calculat
 ### Description of Files
 
 ```
-Strategy_Description.pdf
+RAISE_SYMPOSIUM_PAPER.pdf
 ```
 
-[Strategy_Description.pdf](https://drive.google.com/file/d/1jEx29-C56H8X2gQkpVHRQZwoNkCaCtZn/view?usp=sharing) describes the math concepts behind the strategy, such as how Markov Chain transition matrix probabilities were calculated as well as the payoff/probability model used to determine the optimal move. Towards the end of ```Strategy_Description.pdf```, there is a full simulated turn example that outlines how the program in "yahtzee5.jl" determines and acts on the optimal move. This document is very important in understanding how Markov Chains function in this analysis as well as the fundamentals of the Yahtzee strategy.
+[RAISE_SYMPOSIUM_PAPER.pdf](https://drive.google.com/file/d/188iDPoL0DtVzyLyABCDPPHI3cf22WP-n/view?usp=sharing) describes the math concepts behind the strategy, such as how Markov Chain transition matrix probabilities were calculated as well as the payoff/probability model used to determine the optimal move. Towards the end of the paper, there are a full simulated turn and game examples that demonstrate how the program in "yahtzee5.jl" determines and acts on the optimal move. This document is very important in understanding how Markov Chains function in this analysis as well as the fundamentals of the Yahtzee strategy.
 
 <br />
 <br />
@@ -16,7 +16,9 @@ Strategy_Description.pdf
 ```
 markov-chain-yahtzee.tex
 ```
-[markov-chain-yahtzee.tex](https://milliemince.github.io/yahtzee/markov-chain-yahtzee.tex) is the LaTex file used for ```Strategy_Description.pdf```.
+[View markov-chain-yahtzee.tex](https://github.com/milliemince/yahtzee/blob/master/markov-chain-yahtzee.tex)
+
+[Download markov-chain-yahtzee.tex](https://milliemince.github.io/yahtzee/markov-chain-yahtzee.tex) is the LaTex file used for ```Strategy_Description.pdf```.
 
 <br />
 <br />
@@ -24,7 +26,9 @@ markov-chain-yahtzee.tex
 ```
 yahtzee5.jl
 ```
-[yahtzee5.jl](https://milliemince.github.io/yahtzee/yahtzee5.jl) is written in Julia and executes the strategy described in ```Strategy_Description.pdf```
+[View yahtzee5.jl](https://github.com/milliemince/yahtzee/blob/master/yahtzee5.jl)
+
+[Download yahtzee5.jl](https://milliemince.github.io/yahtzee/yahtzee5.jl) is written in Julia and executes the strategy described in ```Strategy_Description.pdf```
 Important Functions:
 * ```play()``` function simulates a game between the program and a human.
 * ```play_computer()``` function simulates an entire game between two programmed players.
