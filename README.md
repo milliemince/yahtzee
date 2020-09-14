@@ -16,9 +16,9 @@ RAISE_SYMPOSIUM_PAPER.pdf
 ```
 markov-chain-yahtzee.tex
 ```
-[View markov-chain-yahtzee.tex](https://github.com/milliemince/yahtzee/blob/master/markov-chain-yahtzee.tex)
+[Download markov-chain-yahtzee.tex](https://milliemince.github.io/yahtzee/markov-chain-yahtzee.tex)
 
-[Download markov-chain-yahtzee.tex](https://milliemince.github.io/yahtzee/markov-chain-yahtzee.tex) is the LaTex file used for ```Strategy_Description.pdf```.
+[View markov-chain-yahtzee.tex](https://github.com/milliemince/yahtzee/blob/master/markov-chain-yahtzee.tex) is the LaTex file used for ```Strategy_Description.pdf```.
 
 <br />
 <br />
@@ -26,9 +26,9 @@ markov-chain-yahtzee.tex
 ```
 yahtzee5.jl
 ```
-[View yahtzee5.jl](https://github.com/milliemince/yahtzee/blob/master/yahtzee5.jl)
+[Download yahtzee5.jl](https://milliemince.github.io/yahtzee/yahtzee5.jl)
 
-[Download yahtzee5.jl](https://milliemince.github.io/yahtzee/yahtzee5.jl) is written in Julia and executes the strategy described in ```Strategy_Description.pdf```
+[View yahtzee5.jl](https://github.com/milliemince/yahtzee/blob/master/yahtzee5.jl) is written in Julia and executes the strategy described in ```Strategy_Description.pdf```
 Important Functions:
 * ```play()``` function simulates a game between the program and a human.
 * ```play_computer()``` function simulates an entire game between two programmed players.
