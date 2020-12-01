@@ -1,5 +1,7 @@
 ## Using Markov Chains and Probabilistic Modeling to Play Yahtzee
 
+## author: Millie Mince
+
 Hello! Over the summer, I have been experimenting with Markov Chains to calculate Yahtzee probabilities that can be used in a program that strategically plays Yahtzee. I'd love if you took a look at it! The important files are outlined below. Please start by reading ```RAISE_SYMPOSIUM_PAPER.pdf``` which can be accessed by clicking the blue "RAISE_SYMPOSIUM_PAPER.pdf" text below. Then, you can use the blue "View in GitHub" button in the upper right-hand corner to access all of the files in my repository. There, you can find ```yahtzee5.jl```.
 
 ### Description of Files
